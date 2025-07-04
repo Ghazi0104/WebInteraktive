@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Game Simulasi Pilihan Modern</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+   :root {
+  --primary-color: #1f1f1f;
+  --secondary-color: #3a0ca3;
+  --accent-color: #ff0054;
+  --bg-gradient: linear-gradient(135deg, var(--primary-color), #2c003e);
+  --card-bg: rgba(20, 20, 20, 0.95);
+  --text-primary: #f8f8f2;
+  --text-secondary: #a29bfe;
+  --button-bg: linear-gradient(135deg, var(--accent-color), var(--secondary-color));
+  --button-hover: linear-gradient(135deg, #ff0054, #1a0033);
+  --shadow-light: 0 4px 20px rgba(255, 0, 84, 0.2);
+  --shadow-heavy: 0 20px 60px rgba(255, 0, 84, 0.4);
+  --border-radius: 12px;
+  --transition: all 0.4s ease-in-out;
+}
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Poppins', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg-gradient);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    .game-container {
+      background: var(--card-bg);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 40px;
+      border-radius: var(--border-radius);
+      max-width: 600px;
+      width: 95%;
+      box-shadow: var(--shadow-heavy);
+      position: relative;
+      overflow: hidden;
+      z-index: 2;
+    }
+    /* SVG mist background */
+    .mist-bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+      pointer-events: none;
+      opacity: 0.5;
+    }
+
+    .game-container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: var(--button-bg);
+      border-radius: var(--border-radius) var(--border-radius) 0 0;
+    }
+
+    .game-header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .game-title {
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+      background: var(--button-bg);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .game-subtitle {
+      color: var(--text-secondary);
+      font-size: 1rem;
+      opacity: 0.8;
+    }
+
+    .story-section {
+      margin-bottom: 30px;
+    }
+
+    .story-text {
+      font-size: 1.2rem;
+      line-height: 1.6;
+      color: var(--text-primary);
+      margin-bottom: 20px;
+      padding: 24px 20px 24px 28px;
+      background: rgba(102, 126, 234, 0.10);
+      border-radius: 16px;
+      border-left: 6px solid var(--primary-color);
+      box-shadow: 0 2px 16px rgba(102,126,234,0.08);
+      animation: fadeInUp 0.8s cubic-bezier(0.4,1.4,0.4,1);
+      transition: background 0.4s;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 8px;
+      background: rgba(102, 126, 234, 0.1);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--button-bg);
+      border-radius: 4px;
+      transition: width 0.8s ease;
+    }
+
+    .choices-container {
+      display: grid;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .choice-button {
+      padding: 18px 28px;
+      border: none;
+      border-radius: 16px;
+      background: var(--button-bg);
+      color: white;
+      font-weight: 700;
+      font-size: 1.08rem;
+      cursor: pointer;
+      transition: var(--transition), box-shadow 0.2s;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 2px 12px rgba(102,126,234,0.10);
+      transform: translateY(0);
+      letter-spacing: 0.5px;
+    }
+
+    .choice-button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);
+      transition: left 0.5s cubic-bezier(0.4,1.4,0.4,1);
+    }
+
+    .choice-button:hover {
+      background: var(--button-hover);
+      transform: translateY(-4px) scale(1.04);
+      box-shadow: 0 8px 32px rgba(102,126,234,0.18);
+    }
+
+    .choice-button:hover::before {
+      left: 100%;
+    }
+
+    .choice-button:active {
+      transform: translateY(0) scale(0.98);
+    }
+
+    .stats-panel {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+    }
+
+    .stat-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      background: rgba(102, 126, 234, 0.1);
+      border-radius: 8px;
+    }
+
+    .ending-card {
+      background: var(--button-bg);
+      color: white;
+      padding: 32px 20px 28px 20px;
+      border-radius: 18px;
+      text-align: center;
+      margin-top: 28px;
+      box-shadow: 0 8px 32px rgba(102,126,234,0.18);
+      animation: scaleIn 1s cubic-bezier(0.4,1.4,0.4,1);
+    }
+
+    .ending-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .ending-text {
+      font-size: 1.1rem;
+      opacity: 0.9;
+    }
+
+    .restart-button {
+      background: rgba(255, 255, 255, 0.2);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      color: white;
+      padding: 12px 24px;
+      border-radius: 8px;
+      margin-top: 20px;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .restart-button:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: translateY(-2px);
+    }
+
+    .floating-particles {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .particle {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      background: var(--accent-color);
+      border-radius: 50%;
+      animation: float 6s infinite ease-in-out;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes scaleIn {
+      from {
+        opacity: 0;
+        transform: scale(0.8);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-20px) rotate(180deg); }
+    }
+
+    @media (max-width: 768px) {
+      .game-container {
+        padding: 18px;
+        margin: 12px;
+      }
+      .game-title {
+        font-size: 1.3rem;
+      }
+      .story-text {
+        font-size: 1.02rem;
+        padding: 16px 8px 16px 12px;
+      }
+      .choices-container {
+        gap: 10px;
+      }
+      .choice-button {
+        font-size: 0.98rem;
+        padding: 13px 10px;
+        border-radius: 12px;
+      }
+      .stats-panel {
+        flex-direction: column;
+        gap: 8px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="mist-bg">
+    <svg width="100%" height="100%" viewBox="0 0 1440 900" fill="none" xmlns="http://www.w3.org/2000/svg" style="position:absolute;top:0;left:0;">
+      <ellipse opacity="0.18" cx="720" cy="200" rx="800" ry="180" fill="#f093fb"/>
+      <ellipse opacity="0.12" cx="900" cy="600" rx="700" ry="160" fill="#667eea"/>
+      <ellipse opacity="0.10" cx="400" cy="700" rx="600" ry="120" fill="#764ba2"/>
+    </svg>
+  </div>
+  <div class="floating-particles" id="particles"></div>
+  <div class="game-container">
+    <div class="game-header">
+      <h1 class="game-title">Petualangan Mistis</h1>
+      <p class="game-subtitle">Setiap pilihan mengubah takdirmu</p>
+    </div>
+
+    <div class="progress-bar">
+      <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+    </div>
+
+    <div class="stats-panel">
+      <div class="stat-item">
+        <span>🎯</span>
+        <span id="stepCounter">Langkah: 1/8</span>
+      </div>
+      <div class="stat-item">
+        <span>⚡</span>
+        <span id="energyLevel">Energi: 100</span>
+      </div>
+      <div class="stat-item">
+        <span>🏆</span>
+        <span id="scoreDisplay">Skor: 0</span>
+      </div>
+    </div>
+
+    <div class="story-section">
+      <div class="story-text" id="storyText">
+        Kamu terbangun di tengah hutan misterius yang diselimuti kabut tebal. Suara aneh bergema di kejauhan. Di depanmu terdapat dua jalur yang berbeda - satu menuju cahaya redup, yang lain menuju kegelapan total.
+      </div>
+    </div>
+
+    <div class="choices-container" id="choicesContainer">
+      <button class="choice-button" onclick="makeChoice(1)">
+        🌟 Menuju cahaya redup yang hangat
+      </button>
+      <button class="choice-button" onclick="makeChoice(2)">
+        🌙 Masuk ke kegelapan yang menantang
+      </button>
+    </div>
+  </div>
+
+  <script>
+    let currentStep = 1;
+    let playerStats = {
+      energy: 100,
+      score: 0,
+      maxSteps: 8
+    };
+
+    const storyData = {
+      1: {
+        light: {
+          text: "Cahaya membawamu ke sebuah pondok tua. Seorang penyihir ramah menyambutmu dan menawarkan ramuan ajaib. Namun, ada peringatan bahwa ramuan tersebut bisa berbahaya.",
+          choices: [
+            { text: "🧪 Minum ramuan dengan berani", next: 3 },
+            { text: "🤝 Berterima kasih dan menolak", next: 4 },
+            { text: "❓ Tanyakan lebih detail tentang ramuan", next: 5 }
+          ]
+        },
+        dark: {
+          text: "Kegelapan menyembunyikan gua tersembunyi. Di dalam gua, kamu menemukan dua jalan: satu menuju suara air mengalir, yang lain menuju cahaya kristal yang berkilauan.",
+          choices: [
+            { text: "💧 Ikuti suara air mengalir", next: 6 },
+            { text: "💎 Menuju cahaya kristal berkilau", next: 7 },
+            { text: "🔦 Gunakan cahaya ponsel untuk eksplorasi", next: 8 }
+          ]
+        }
+      },
+      2: {
+        3: {
+          text: "Ramuan memberikanmu kekuatan super! Kamu bisa terbang dan melihat masa depan. Namun, kamu melihat bahaya besar mengancam desa terdekat.",
+          choices: [
+            { text: "🦸 Terbang ke desa untuk membantu", next: 9 },
+            { text: "🔮 Gunakan penglihatan masa depan", next: 10 }
+          ]
+        },
+        4: {
+          text: "Penyihir menghormati keputusanmu dan memberikan peta harta karun. Peta menunjukkan dua lokasi berbeda yang menjanjikan.",
+          choices: [
+            { text: "🏴‍☠️ Pergi ke pulau bajak laut", next: 11 },
+            { text: "🏰 Mencari kastil yang hilang", next: 12 }
+          ]
+        },
+        5: {
+          text: "Penyihir menjelaskan bahwa ramuan bisa memberikan kekuatan, tapi juga kutukan. Kamu harus memilih dengan bijak.",
+          choices: [
+            { text: "✨ Ambil risiko untuk kekuatan", next: 13 },
+            { text: "🛡️ Pilih jalan yang aman", next: 14 }
+          ]
+        },
+        6: {
+          text: "Air mengalir menuju danau underground yang indah. Di tengah danau ada pulau kecil dengan pohon emas yang bersinar.",
+          choices: [
+            { text: "🏊 Berenang ke pulau emas", next: 15 },
+            { text: "🚣 Cari perahu untuk menyeberang", next: 16 }
+          ]
+        },
+        7: {
+          text: "Kristal ternyata adalah portal ajaib! Kamu bisa memilih dimensi mana yang ingin dikunjungi.",
+          choices: [
+            { text: "🌈 Dimensi penuh warna dan keajaiban", next: 17 },
+            { text: "⚔️ Dimensi petualangan dan tantangan", next: 18 }
+          ]
+        },
+        8: {
+          text: "Cahaya ponselmu menarik perhatian makhluk gua yang ramah. Mereka menawarkan untuk menjadi pemandumu.",
+          choices: [
+            { text: "🤗 Terima tawaran mereka", next: 19 },
+            { text: "🚶 Lanjutkan perjalanan sendiri", next: 20 }
+          ]
+        }
+      }
+    };
+
+    const endings = {
+      9: { title: "Pahlawan Desa", text: "Kamu berhasil menyelamatkan desa dari bahaya besar. Penduduk mengangkatmu sebagai pahlawan legendaris!", score: 100 },
+      10: { title: "Peramal Agung", text: "Dengan kekuatan penglihatan masa depan, kamu menjadi peramal yang dihormati di seluruh kerajaan.", score: 90 },
+      11: { title: "Raja Bajak Laut", text: "Kamu menemukan harta karun bajak laut dan menjadi kapten kapal yang ditakuti dan dihormati!", score: 85 },
+      12: { title: "Penguasa Kastil", text: "Kastil yang hilang ternyata adalah kerajaanmu yang sesungguhnya. Kamu dinobatkan sebagai raja!", score: 95 },
+      13: { title: "Penyihir Muda", text: "Kekuatan dari ramuan membuatmu menjadi penyihir muda yang paling berkuasa di hutan.", score: 80 },
+      14: { title: "Penjelajah Bijak", text: "Keputusanmu yang bijak membawa berkah. Kamu menjadi penjelajah terkenal dengan banyak pengalaman.", score: 75 },
+      15: { title: "Penjaga Pohon Emas", text: "Pohon emas memilihmu sebagai penjaganya. Kamu mendapat kehidupan abadi dan kebijaksanaan tak terbatas.", score: 100 },
+      16: { title: "Nelayan Mistis", text: "Kamu menemukan perahu ajaib yang bisa membawamu ke mana saja. Petualangan tak terbatas menanti!", score: 85 },
+      17: { title: "Penguasa Dimensi Ajaib", text: "Di dimensi penuh keajaiban, kamu menjadi penguasa yang bijak dan dicintai semua makhluk.", score: 95 },
+      18: { title: "Pejuang Legendaris", text: "Tantangan di dimensi petualangan membuatmu menjadi pejuang legendaris yang tak terkalahkan.", score: 90 },
+      19: { title: "Sahabat Makhluk Gua", text: "Persahabatan dengan makhluk gua membukakan rahasia dunia bawah tanah yang menakjubkan.", score: 80 },
+      20: { title: "Petualang Mandiri", text: "Kemandirian dan keberanianmu membawa pada penemuan gua harta karun yang luar biasa.", score: 75 }
+    };
+
+    function createParticles() {
+      const container = document.getElementById('particles');
+      for (let i = 0; i < 20; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        particle.style.left = Math.random() * 100 + '%';
+        particle.style.animationDelay = Math.random() * 6 + 's';
+        particle.style.animationDuration = (Math.random() * 4 + 4) + 's';
+        container.appendChild(particle);
+      }
+    }
+
+    function updateStats() {
+      document.getElementById('stepCounter').textContent = `Langkah: ${currentStep}/${playerStats.maxSteps}`;
+      document.getElementById('energyLevel').textContent = `Energi: ${playerStats.energy}`;
+      document.getElementById('scoreDisplay').textContent = `Skor: ${playerStats.score}`;
+      
+      const progress = (currentStep / playerStats.maxSteps) * 100;
+      document.getElementById('progressFill').style.width = progress + '%';
+    }
+
+    function makeChoice(choice) {
+      const storyText = document.getElementById('storyText');
+      const choicesContainer = document.getElementById('choicesContainer');
+      
+      // Update energy and score
+      playerStats.energy = Math.max(0, playerStats.energy - 10);
+      playerStats.score += Math.floor(Math.random() * 20) + 5;
+      
+      currentStep++;
+      
+      // Check if we've reached an ending
+      if (currentStep > 2 && Math.random() > 0.3) {
+        const endingKeys = Object.keys(endings);
+        const randomEnding = endingKeys[Math.floor(Math.random() * endingKeys.length)];
+        showEnding(randomEnding);
+        return;
+      }
+      
+      // Generate next story step
+      const nextStory = generateStory();
+      storyText.textContent = nextStory.text;
+      
+      // Update choices
+      choicesContainer.innerHTML = '';
+      nextStory.choices.forEach((choice, index) => {
+        const button = document.createElement('button');
+        button.className = 'choice-button';
+        button.textContent = choice.text;
+        button.onclick = () => makeChoice(index + 1);
+        choicesContainer.appendChild(button);
+      });
+      
+      updateStats();
+    }
+
+    function generateStory() {
+      const stories = [
+        {
+          text: "Kamu menemukan sebuah jembatan tua yang hampir roboh. Di seberang jembatan terlihat cahaya emas yang mempesona.",
+          choices: [
+            { text: "🌉 Menyeberangi jembatan dengan hati-hati" },
+            { text: "🧗 Memanjat tebing untuk mencari jalan lain" },
+            { text: "🔍 Mencari jembatan yang lebih aman" }
+          ]
+        },
+        {
+          text: "Suara musik misterius terdengar dari kejauhan. Sekelompok makhluk hutan sedang berpesta di bawah bulan purnama.",
+          choices: [
+            { text: "🎵 Bergabung dengan pesta mereka" },
+            { text: "👀 Mengamati dari kejauhan" },
+            { text: "🏃 Berlari menjauh dengan cepat" }
+          ]
+        },
+        {
+          text: "Kamu menemukan buku mantra kuno yang terbuka. Halaman-halamannya bercahaya dan berisi mantra yang berbeda.",
+          choices: [
+            { text: "📖 Membaca mantra penyembuhan" },
+            { text: "✨ Mencoba mantra teleportasi" },
+            { text: "🔒 Menutup buku dan menyimpannya" }
+          ]
+        },
+        {
+          text: "Sebuah naga kecil yang terluka meminta bantuanmu. Dia berjanji memberikan hadiah jika kamu membantunya.",
+          choices: [
+            { text: "❤️ Merawat lukanya dengan lembut" },
+            { text: "🏃 Pergi mencari bantuan ahli" },
+            { text: "💎 Minta hadiah terlebih dahulu" }
+          ]
+        }
+      ];
+      
+      return stories[Math.floor(Math.random() * stories.length)];
+    }
+
+    function showEnding(endingKey) {
+      const ending = endings[endingKey];
+      const choicesContainer = document.getElementById('choicesContainer');
+      
+      // Add final score
+      playerStats.score += ending.score;
+      
+      choicesContainer.innerHTML = `
+        <div class="ending-card">
+          <div class="ending-title">${ending.title}</div>
+          <div class="ending-text">${ending.text}</div>
+          <div style="margin-top: 15px; font-size: 1.2rem;">
+            <strong>Skor Akhir: ${playerStats.score}</strong>
+          </div>
+          <button class="restart-button" onclick="restartGame()">
+            🔄 Mulai Petualangan Baru
+          </button>
+        </div>
+      `;
+      
+      updateStats();
+    }
+
+    function restartGame() {
+      currentStep = 1;
+      playerStats = { energy: 100, score: 0, maxSteps: 8 };
+      
+      document.getElementById('storyText').textContent = "Kamu terbangun di tengah hutan misterius yang diselimuti kabut tebal. Suara aneh bergema di kejauhan. Di depanmu terdapat dua jalur yang berbeda - satu menuju cahaya redup, yang lain menuju kegelapan total.";
+      
+      document.getElementById('choicesContainer').innerHTML = `
+        <button class="choice-button" onclick="makeChoice(1)">
+          🌟 Menuju cahaya redup yang hangat
+        </button>
+        <button class="choice-button" onclick="makeChoice(2)">
+          🌙 Masuk ke kegelapan yang menantang
+        </button>
+      `;
+      
+      updateStats();
+    }
+
+    // Initialize game
+    createParticles();
+    updateStats();
+  </script>
+</body>
+</html>
